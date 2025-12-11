@@ -47,15 +47,27 @@ RULES:
       return NextResponse.json({ error: data.error.message }, { status: 500 });
     }
 
-    const code = data.candidates?.[0]?.content?.parts?.[0]?.text
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text
       ?.replace(/```(html|jsx|tsx|javascript)?/g, "")
       .replace(/```/g, "")
       .trim();
 
-    return NextResponse.json({ code });
+    const sanitize = (input: string) => {
+      let out = input;
+      out = out.replace(/<script[\s\S]*?<\/script>/gi, "");
+      out = out.replace(/<iframe[\s\S]*?<\/iframe>/gi, "");
+      out = out.replace(/on[a-z]+\s*=\s*(["']).*?\1/gi, "");
+      out = out.replace(/javascript:\s*/gi, "");
+      return out;
+    };
 
-  } catch (error: any) {
-    console.error("❌ Network Error:", error.message);
+    const code = raw ? sanitize(raw) : "";
+
+    return NextResponse.json({ code, validated: true });
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("❌ Network Error:", message);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }

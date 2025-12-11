@@ -1,6 +1,7 @@
 // test-backend.js
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-require('dotenv').config({ path: '.env.local' });
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 
 async function testMyCode() {
   console.log("🚀 Testing your AI Engine...");
@@ -26,7 +27,8 @@ async function testMyCode() {
     console.log("\n------------------------------------------------");
     console.log("Your backend is ALIVE. Now tell Person 1 to connect the UI!");
   } catch (error) {
-    console.error("❌ Error:", error.message);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("❌ Error:", message);
   }
 }
 

@@ -1,5 +1,3 @@
-# ⚡ RepliCode: Image-to-Code Converter
-
 > **Turn UI screenshots into clean, production-ready HTML & Tailwind code instantly using Multimodal AI.**
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
