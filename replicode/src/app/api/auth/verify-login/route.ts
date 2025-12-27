@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSession, pendingLogins as memPending } from "../../auth/store";
-import { getDb, pendingLoginsCol, sessionsCol } from "../../auth/db";
+import { createSession, pendingLogins as memPending } from "@/lib/store";
+import { getDb, pendingLoginsCol, sessionsCol } from "@/lib/db";
 
 const verifySchema = z.object({ email: z.string().email(), otp: z.string().length(6) });
 

@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [token] = useState("");
+  const [devOtp, setDevOtp] = useState("");
 
   const submitLogin = async () => {
     const parsed = schema.safeParse({ email, password });
@@ -26,7 +26,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(parsed.data) });
     const data = await res.json();
     setLoading(false);
-    if (data.ok) setOtpSent(true); else setMessage(data.error || "Error");
+    if (data.ok) { setOtpSent(true); setDevOtp(data.devOtp || ""); } else setMessage(data.error || "Error");
   };
 
   const verifyOtp = async () => {
@@ -70,7 +70,7 @@ export default function LoginPage() {
             <p className="text-sm text-slate-300">Enter the 6-digit code sent to your email.</p>
             <input value={otp} onChange={e=>setOtp(e.target.value)} maxLength={6} className="mt-1 w-full rounded-lg bg-slate-800 text-slate-200 border border-slate-700 px-3 py-2 tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-700" />
             <button onClick={verifyOtp} disabled={loading} className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 shadow-lg shadow-blue-900/30">{loading ? "Verifying" : "Verify"}</button>
-            {token && <p className="text-xs text-slate-400 break-all">Token: {token}</p>}
+            {devOtp && <p className="text-xs text-slate-400">Dev OTP: {devOtp}</p>}
           </div>
         )}
         {message && <p className="mt-4 text-sm text-slate-300">{message}</p>}

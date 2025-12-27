@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import NextImage from "next/image";
 import CodePreview from "@/components/CodePreview";
 import { Loader2, UploadCloud, Code, Image as ImageIcon, Eye, FileCode, Copy as CopyIcon, Download as DownloadIcon, CheckCircle, Brain, BarChart3 } from "lucide-react";
 
@@ -16,25 +16,44 @@ export default function Home() {
   const heroUploadRef = useRef<HTMLInputElement>(null);
   const [actionMsg, setActionMsg] = useState<string>("");
   const [isAuthed, setIsAuthed] = useState(false);
+  const [cooldown, setCooldown] = useState<number>(0);
+  const [genError, setGenError] = useState<string>("");
 
   useEffect(() => {
     const t = localStorage.getItem("ui2code_token");
     setIsAuthed(!!t);
   }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setImage(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxSide = 1024;
+      const quality = 0.75;
+      const w = img.width;
+      const h = img.height;
+      const scale = Math.min(1, maxSide / Math.max(w, h));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { URL.revokeObjectURL(url); return; }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", quality);
+      URL.revokeObjectURL(url);
+      setImage(dataUrl);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); };
+    img.src = url;
   };
 
   const generateCode = async () => {
     if (!image) return;
     setLoading(true);
     setCode(""); 
+    setGenError("");
 
     try {
       console.log("🚀 Sending request to backend...");
@@ -47,7 +66,20 @@ export default function Home() {
       const data = await res.json();
       console.log("✅ Data received:", data);
 
-      if (data.code) {
+      if (data?.validated === false) {
+        if (typeof data?.retryAfter === "number" && data.retryAfter > 0) {
+          setCooldown(data.retryAfter);
+          const timer = setInterval(() => {
+            setCooldown((s) => {
+              if (s <= 1) { clearInterval(timer); return 0; }
+              return s - 1;
+            });
+          }, 1000);
+        }
+        if (typeof data?.error === "string") setGenError(data.error);
+      }
+
+      if (typeof data?.code === "string" && data.code.length > 0) {
         setCode(data.code);
         setActiveTab("preview");
       }
@@ -224,21 +256,26 @@ export default function Home() {
                   <p className="text-lg font-medium text-slate-200">Upload a screenshot</p>
                 </>
               ) : (
-                <Image src={image} alt="Preview" width={800} height={600} unoptimized className="max-h-full max-w-full object-contain rounded-lg shadow-sm" />
+                <NextImage src={image} alt="Preview" width={800} height={600} unoptimized className="max-h-full max-w-full object-contain rounded-lg shadow-sm" />
               )}
               <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
 
             <button
               onClick={generateCode}
-              disabled={!image || loading}
+              disabled={!image || loading || cooldown > 0}
               className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-lg font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
             >
-              {loading ? <><Loader2 className="animate-spin" /> Generating...</> : "Generate Code 🚀"}
+              {loading ? <>\<Loader2 className="animate-spin" /> Generating...\</> : (cooldown > 0 ? `Retry in ${cooldown}s` : "Generate Code 🚀")}
             </button>
           </div>
 
           <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+            {genError && (
+              <div className="px-4 py-2 bg-red-900/30 text-red-300 text-xs border-b border-red-800">
+                {genError}
+              </div>
+            )}
             <div className="flex border-b border-slate-800">
               <button 
                 onClick={() => setActiveTab("preview")}
@@ -276,6 +313,7 @@ export default function Home() {
                 <div className="flex-1 h-full flex flex-col items-center justify-center text-slate-500">
                   <ImageIcon className="w-16 h-16 mb-4 opacity-20" />
                   <p>Output will appear here</p>
+                  {genError && <p className="mt-2 text-xs text-red-400">{genError}</p>}
                 </div>
               )}
             </div>

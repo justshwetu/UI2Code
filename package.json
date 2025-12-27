@@ -1,0 +1,11 @@
+{
+  "name": "copoint-root",
+  "private": true,
+  "scripts": {
+    "dev": "cd replicode && npm run dev",
+    "build": "cd replicode && npm run build",
+    "start": "cd replicode && npm run start",
+    "lint": "cd replicode && npm run lint",
+    "install-app": "cd replicode && npm install"
+  }
+}

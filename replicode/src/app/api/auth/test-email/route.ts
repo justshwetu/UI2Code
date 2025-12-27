@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { sendOtpEmail } from "../../auth/email";
-import { generateOtp } from "../../auth/store";
+import { sendOtpEmail } from "@/lib/email";
+import { generateOtp } from "@/lib/store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

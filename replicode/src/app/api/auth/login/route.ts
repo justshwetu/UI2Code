@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyPassword, generateOtp, users as memUsers, pendingLogins as memPending } from "../../auth/store";
-import { sendOtpEmail } from "../../auth/email";
-import { getDb, usersCol, pendingLoginsCol } from "../../auth/db";
+import { verifyPassword, generateOtp, users as memUsers, pendingLogins as memPending } from "@/lib/store";
+import { sendOtpEmail } from "@/lib/email";
+import { getDb, usersCol, pendingLoginsCol } from "@/lib/db";
 
 const loginSchema = z.object({ email: z.string().email(), password: z.string().min(8) });
 

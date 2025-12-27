@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getDb, pendingSignupsCol, usersCol } from "../../auth/db";
-import { pendingSignups as memPending, users as memUsers, parsePendingToken } from "../../auth/store";
+import { getDb, pendingSignupsCol, usersCol } from "@/lib/db";
+import { pendingSignups as memPending, users as memUsers, parsePendingToken } from "@/lib/store";
+import { PendingPayload } from "@/types/auth";
 
 const verifySchema = z.object({ email: z.string().email(), otp: z.string().length(6) });
 
-type PendingPayload = { email: string; passwordHash: string; salt: string; otp: string; expiresAt: number };
 function isPendingPayload(x: Record<string, unknown> | null): x is PendingPayload {
   return !!x && typeof x.email === "string" && typeof x.passwordHash === "string" && typeof x.salt === "string" && typeof x.otp === "string" && typeof x.expiresAt === "number";
 }

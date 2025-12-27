@@ -4,7 +4,7 @@ let client: MongoClient | null = null;
 let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
-  const uri = process.env.MONGO_URI;
+  const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017";
   const name = process.env.MONGO_DB || "ui2code";
 
   if (!uri) {

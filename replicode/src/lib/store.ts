@@ -1,16 +1,10 @@
 import crypto from "crypto";
-
-export type User = {
-  email: string;
-  passwordHash: string;
-  salt: string;
-  createdAt: number;
-};
+import { User, PendingSignup, PendingLogin, Session } from "@/types/auth";
 
 export const users = new Map<string, User>();
-export const pendingSignups = new Map<string, { email: string; passwordHash: string; salt: string; otp: string; expiresAt: number }>();
-export const pendingLogins = new Map<string, { email: string; otp: string; expiresAt: number }>();
-export const sessions = new Map<string, { email: string; createdAt: number }>();
+export const pendingSignups = new Map<string, PendingSignup>();
+export const pendingLogins = new Map<string, PendingLogin>();
+export const sessions = new Map<string, Session>();
 
 export function generateOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
